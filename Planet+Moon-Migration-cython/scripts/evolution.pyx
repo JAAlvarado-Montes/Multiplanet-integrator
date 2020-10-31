@@ -45,7 +45,7 @@ Protini = inner_planet.Prot / uT       # Initial planetary rotational period
 alpha_1 = inner_planet.alpha             # This is Jupiter's alpha
 beta_1 = inner_planet.beta               # This is Jupiter's beta
 rigidity_1 = 0.0 * (uL * uT**2 / uM)               # This is Jupiter's rigidity
-om_1_ini = 2 * np.pi / Protini * uT  # Initial planetary rotational rate
+om_1_ini = 2 * np.pi / Protini  # Initial planetary rotational rate
 epsilon_planet = om_1_ini / omegaCritic(M1, R1)
 k2q1_e = k2Q_planet_envelope(alpha_1,
                              beta_1,
@@ -61,7 +61,7 @@ Protini = outer_planet.Prot / uT       # Initial planetary rotational period
 alpha_2 = outer_planet.alpha        # This is Jupiter's alpha
 beta_2 = outer_planet.beta               # This is Jupiter's beta
 rigidity_2 = 4.46E10 * (uL * uT**2 / uM)  # This is Jupiter's rigidity
-om_2_ini = 2 * np.pi / Protini * uT  # Initial planetary rotational rate
+om_2_ini = 2 * np.pi / Protini  # Initial planetary rotational rate
 epsilon_planet = om_2_ini / omegaCritic(M2, R2)
 k2q2_e = k2Q_planet_envelope(alpha_2,
                              beta_2,
@@ -86,9 +86,9 @@ b1_z0 = 0.0 / uL
 r1_ini = mag_vec(b1_x0, b1_y0, b1_z0)
 b1_ve = escape_velocity(Ms, r1_ini)
 
-b1_vx0 = 0.0 * uT / uL
-b1_vy0 = b1_ve * 0.5 * uT / uL
-b1_vz0 = 0.0 * uT / uL
+b1_vx0 = 0.0
+b1_vy0 = b1_ve * 0.5
+b1_vz0 = 0.0
 v1_ini = mag_vec(b1_vx0, b1_vy0, b1_vz0)
 
 # Initial positions, velocities, and vectors body 2
@@ -98,9 +98,9 @@ b2_z0 = 0.0 / uL
 r2_ini = mag_vec(b2_x0, b2_y0, b2_z0)
 b2_ve = escape_velocity(Ms, r2_ini)
 
-b2_vx0 = 0.0 * uT / uL
-b2_vy0 = b2_ve * 0.5 * uT / uL
-b2_vz0 = 0.0 * uT / uL
+b2_vx0 = 0.0
+b2_vy0 = b2_ve * 0.5
+b2_vz0 = 0.0
 v2_ini = mag_vec(b2_vx0, b2_vy0, b2_vz0)
 
 star = Body(name='Star',
@@ -147,10 +147,10 @@ print("{}\n mass={}kg, a_ini={}au\n".format(bodies[1].name,
 # ************************************************************
 # INTEGRATION
 # ************************************************************
-t_scale = KYEAR / uT * u.s
-t = 10. * t_scale
+t_scale = YEAR / uT * u.s
+t = 100. * t_scale
 
-dt_scale = DAY / uT * u.s
+dt_scale = HOUR / uT * u.s
 dt = 1. * dt_scale
 
 N_steps = t.value / dt.value
@@ -185,7 +185,7 @@ os.makedirs(images_dir, exist_ok=True)
 # Get the times and solutions of the simulation
 times, solutions = simulation.history
 
-ind = 50
+ind = 1
 
 r1 = mag_vec(solutions[:, 0], solutions[:, 1], solutions[:, 2])
 v1 = mag_vec(solutions[:, 3], solutions[:, 4], solutions[:, 5])
