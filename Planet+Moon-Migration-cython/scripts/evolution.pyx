@@ -9,7 +9,7 @@ from modulecore import (global_differential_equation,
                         k2Q_planet_core,
                         k2Q_planet_envelope,
                         state_vector_to_semimajor,
-                        escape_velocity,
+                        initial_velocity,
                         mag_vec)
 
 from util import (MSUN, RSUN, AU, PLANETS, DAY, GYEAR, GCONST,
@@ -39,12 +39,14 @@ Rs = 1.0 * RSUN / uL                # Radius of the star
 c_light = c_light * uT / uL
 
 inner_planet = PLANETS.Saturn
+e1 = 0.001  # Initial eccentricity inner planet
+a1 = 0.01 * AU / uL  # Initial semimajor axis inner planet
 M1 = 0.3 * inner_planet.M / uM   # Mass of the inner planet
 R1 = 0.3 * inner_planet.R / uL   # Radius of the inner planet
-Protini = inner_planet.Prot / uT       # Initial planetary rotational period
-alpha_1 = inner_planet.alpha             # This is Jupiter's alpha
-beta_1 = inner_planet.beta               # This is Jupiter's beta
-rigidity_1 = 0.0 * (uL * uT**2 / uM)               # This is Jupiter's rigidity
+Protini = inner_planet.Prot / uT  # Initial planetary rotational period
+alpha_1 = inner_planet.alpha  # This is Jupiter's alpha
+beta_1 = inner_planet.beta  # This is Jupiter's beta
+rigidity_1 = 0.0 * (uL * uT**2 / uM)  # This is Jupiter's rigidity
 om_1_ini = 2 * np.pi / Protini  # Initial planetary rotational rate
 epsilon_planet = om_1_ini / omegaCritic(M1, R1)
 k2q1_e = k2Q_planet_envelope(alpha_1,
@@ -55,11 +57,13 @@ k2q1_c = k2Q_planet_core(rigidity_1, alpha_1,
 k2q1 = k2q1_e + k2q1_c
 
 outer_planet = PLANETS.Jupiter
+e2 = 0.1  # Initial eccentricity outer planet
+a2 = 0.08 * AU / uL  # Initial semimajor axis outer planet
 M2 = 1.0 * outer_planet.M / uM  # Mass of the outer planet
 R2 = 1.0 * outer_planet.R / uL  # Radius of the outer planet
-Protini = outer_planet.Prot / uT       # Initial planetary rotational period
-alpha_2 = outer_planet.alpha        # This is Jupiter's alpha
-beta_2 = outer_planet.beta               # This is Jupiter's beta
+Protini = outer_planet.Prot / uT  # Initial planetary rotational period
+alpha_2 = outer_planet.alpha  # This is Jupiter's alpha
+beta_2 = outer_planet.beta  # This is Jupiter's beta
 rigidity_2 = 4.46E10 * (uL * uT**2 / uM)  # This is Jupiter's rigidity
 om_2_ini = 2 * np.pi / Protini  # Initial planetary rotational rate
 epsilon_planet = om_2_ini / omegaCritic(M2, R2)
@@ -80,11 +84,11 @@ key = 0
 # Initial Conditions
 # ############################################################
 # Initial positions, velocities, and vectors body 1
-b1_x0 = 0.01 * AU / uL
+r1_ini = a1 * (1 - e1**2.) / (1 + e1)  # Initial position inner planet
+b1_x0 = r1_ini
 b1_y0 = 0.0 / uL
 b1_z0 = 0.0 / uL
-r1_ini = mag_vec(b1_x0, b1_y0, b1_z0)
-b1_ve = escape_velocity(Ms, r1_ini)
+b1_ve = initial_velocity(Ms, M1, r1_ini, a1)  # Initial tangential velocity inner planet
 
 b1_vx0 = 0.0
 b1_vy0 = b1_ve
@@ -92,11 +96,11 @@ b1_vz0 = 0.0
 v1_ini = mag_vec(b1_vx0, b1_vy0, b1_vz0)
 
 # Initial positions, velocities, and vectors body 2
-b2_x0 = 0.08 * AU / uL
+r2_ini = a2 * (1 - e2**2.) / (1 + e2)  # Initial position outer planet
+b2_x0 = r2_ini
 b2_y0 = 0.0 / uL
 b2_z0 = 0.0 / uL
-r2_ini = mag_vec(b2_x0, b2_y0, b2_z0)
-b2_ve = escape_velocity(Ms, r2_ini)
+b2_ve = initial_velocity(Ms, M2, r2_ini, a2)  # Initial tangential velocity outer planet
 
 b2_vx0 = 0.0
 b2_vy0 = b2_ve

@@ -255,9 +255,15 @@ def state_vector_to_semimajor(M, m, r, v):
 
 
 def escape_velocity(M, r):
-    ev = (GCONST * M / r)**0.5
+    ev = (2 * GCONST * M / r)**0.5
 
     return ev
+
+
+def initial_velocity(M, m, r0, a):
+    v0 = ((M + m) * (2. / r0 - 1. / a))**0.5
+
+    return v0
 
 
 def polar_mom_iner(M, R):
