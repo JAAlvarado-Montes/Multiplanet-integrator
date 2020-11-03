@@ -38,7 +38,7 @@ Rs = 1.0 * RSUN / uL                # Radius of the star
 
 c_light = c_light * uT / uL
 
-inner_planet = PLANETS.Jupiter
+inner_planet = PLANETS.Saturn
 M1 = 0.3 * inner_planet.M / uM   # Mass of the inner planet
 R1 = 0.3 * inner_planet.R / uL   # Radius of the inner planet
 Protini = inner_planet.Prot / uT       # Initial planetary rotational period
@@ -80,26 +80,26 @@ key = 0
 # Initial Conditions
 # ############################################################
 # Initial positions, velocities, and vectors body 1
-b1_x0 = 0.05 * AU / uL
+b1_x0 = 0.01 * AU / uL
 b1_y0 = 0.0 / uL
 b1_z0 = 0.0 / uL
 r1_ini = mag_vec(b1_x0, b1_y0, b1_z0)
 b1_ve = escape_velocity(Ms, r1_ini)
 
 b1_vx0 = 0.0
-b1_vy0 = b1_ve * 0.5
+b1_vy0 = b1_ve
 b1_vz0 = 0.0
 v1_ini = mag_vec(b1_vx0, b1_vy0, b1_vz0)
 
 # Initial positions, velocities, and vectors body 2
-b2_x0 = 0.5 * AU / uL
+b2_x0 = 0.08 * AU / uL
 b2_y0 = 0.0 / uL
 b2_z0 = 0.0 / uL
 r2_ini = mag_vec(b2_x0, b2_y0, b2_z0)
 b2_ve = escape_velocity(Ms, r2_ini)
 
 b2_vx0 = 0.0
-b2_vy0 = b2_ve * 0.5
+b2_vy0 = b2_ve
 b2_vz0 = 0.0
 v2_ini = mag_vec(b2_vx0, b2_vy0, b2_vz0)
 
@@ -148,7 +148,7 @@ print("{}\n mass={}kg, a_ini={}au\n".format(bodies[1].name,
 # INTEGRATION
 # ************************************************************
 t_scale = YEAR / uT * u.s
-t = 100. * t_scale
+t = 10. * t_scale
 
 dt_scale = HOUR / uT * u.s
 dt = 1. * dt_scale
@@ -185,7 +185,7 @@ os.makedirs(images_dir, exist_ok=True)
 # Get the times and solutions of the simulation
 times, solutions = simulation.history
 
-ind = 1
+ind = 20
 
 r1 = mag_vec(solutions[:, 0], solutions[:, 1], solutions[:, 2])
 v1 = mag_vec(solutions[:, 3], solutions[:, 4], solutions[:, 5])
@@ -200,9 +200,9 @@ fig = plt.figure(figsize=(7.5, 5.0))
 ax = fig.add_subplot(1, 1, 1)
 
 ax.plot(solutions[::ind, 0] * uL / AU, solutions[::ind, 1] * uL / AU,
-        "b.", label="Inner planet")
+        "b.", ms=0.4, label="Inner planet")
 ax.plot(solutions[::ind, 9] * uL / AU, solutions[::ind, 10] * uL / AU,
-        "k.", label="Outer planet")
+        "k.", ms=0.4, label="Outer planet")
 
 ax.set_ylabel("y [au]", fontsize=11)
 ax.set_xlabel("x [au]", fontsize=11)

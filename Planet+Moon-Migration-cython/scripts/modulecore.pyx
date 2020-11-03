@@ -255,7 +255,7 @@ def state_vector_to_semimajor(M, m, r, v):
 
 
 def escape_velocity(M, r):
-    ev = (2 * GCONST * M / r)**0.5
+    ev = (GCONST * M / r)**0.5
 
     return ev
 
@@ -337,9 +337,9 @@ def dr1_dt(y, t, parameters):
         k2q2 = k2q2_e + k2q2_c
 
     # Position vectors magnitude
-    r1 = mag_vec_soft(y[0], y[1], y[2], R1 + Rs)
+    r1 = mag_vec(y[0], y[1], y[2])
     v1 = mag_vec(y[3], y[4], y[5])
-    r2 = mag_vec_soft(q2_x, q2_y, q2_z, R2 + Rs)
+    r2 = mag_vec(q2_x, q2_y, q2_z)
     v2 = mag_vec(q2_vx, q2_vy, q2_vz)
 
     a1 = state_vector_to_semimajor(Ms, M1, r1, v1)
@@ -354,29 +354,25 @@ def dr1_dt(y, t, parameters):
     f_01_z = -(mu1 / r1**3) * y[2]
 
     # Force of body 2 on body 1
-    f_21_x = GCONST * M2 * ((q2_x - y[0]) / mag_vec_soft((q2_x - y[0]), (q2_y - y[1]), (q2_z - y[2]), (R1 + R2))**3. - q2_x / r2**3.)
-    f_21_y = GCONST * M2 * ((q2_y - y[1]) / mag_vec_soft((q2_x - y[0]), (q2_y - y[1]), (q2_z - y[2]), (R1 + R2))**3. - q2_y / r2**3.)
-    f_21_z = GCONST * M2 * ((q2_z - y[2]) / mag_vec_soft((q2_x - y[0]), (q2_y - y[1]), (q2_z - y[2]), (R1 + R2))**3. - q2_z / r2**3.)
+    f_21_x = GCONST * M2 * ((q2_x - y[0]) / mag_vec((q2_x - y[0]), (q2_y - y[1]), (q2_z - y[2]))**3. - q2_x / r2**3.)
+    f_21_y = GCONST * M2 * ((q2_y - y[1]) / mag_vec((q2_x - y[0]), (q2_y - y[1]), (q2_z - y[2]))**3. - q2_y / r2**3.)
+    f_21_z = GCONST * M2 * ((q2_z - y[2]) / mag_vec((q2_x - y[0]), (q2_y - y[1]), (q2_z - y[2]))**3. - q2_z / r2**3.)
 
     # Relativity correction
-    dot_product = y[0] * y[3] + y[1] * y[4] + y[2] * y[5]
+    dot_product = np.dot([y[0], y[1], y[2]], [y[3], y[4], y[5]])
     f_rel_x = GCONST * M1 * Ms / (c_light**2 * r1**3.) * ((4 * GCONST * Ms / r1 - v1**2.) * y[0] + 4 * dot_product * y[3])
     f_rel_y = GCONST * M1 * Ms / (c_light**2 * r1**3.) * ((4 * GCONST * Ms / r1 - v1**2.) * y[1] + 4 * dot_product * y[4])
     f_rel_z = GCONST * M1 * Ms / (c_light**2 * r1**3.) * ((4 * GCONST * Ms / r1 - v1**2.) * y[2] + 4 * dot_product * y[5])
 
     # Tidal force on body 1
-    cross_pr_r_om1 = [y[1] * om1_z - y[2] * om1_y,
-                      y[2] * om1_x - y[0] * om1_z,
-                      y[0] * om1_y - y[1] * om1_x]
+    cross_pr_r_om1 = np.cross([y[0], y[1], y[2]], [om1_x, om1_y, om1_z])
 
     f_tidal_x = -3 * k2q1 * GCONST * Ms**.2 * R1**5. / (n1 * r1**10.) * (2 * y[0] * dot_product + r1**2. * (cross_pr_r_om1[0] + y[3]))
     f_tidal_y = -3 * k2q1 * GCONST * Ms**.2 * R1**5. / (n1 * r1**10.) * (2 * y[1] * dot_product + r1**2. * (cross_pr_r_om1[1] + y[4]))
     f_tidal_z = -3 * k2q1 * GCONST * Ms**.2 * R1**5. / (n1 * r1**10.) * (2 * y[2] * dot_product + r1**2. * (cross_pr_r_om1[2] + y[5]))
 
     # Tidal force on body 2
-    cross_pr_r_om2 = [q2_y * om2_z - q2_z * om2_y,
-                      q2_z * om2_x - q2_x * om2_z,
-                      q2_x * om2_y - q2_y * om2_x]
+    cross_pr_r_om2 = np.cross([q2_x, q2_y, q2_z], [om2_x, om2_y, om2_z])
 
     g_tidal_x = -3 * k2q2 * GCONST * Ms**.2 * R2**5. / (n2 * r2**10.) * (2 * q2_x * dot_product + r2**2. * (cross_pr_r_om2[0] + q2_vx))
     g_tidal_y = -3 * k2q2 * GCONST * Ms**.2 * R2**5. / (n2 * r2**10.) * (2 * q2_y * dot_product + r2**2. * (cross_pr_r_om2[1] + q2_vy))
@@ -462,9 +458,9 @@ def dr2_dt(y, t, parameters):
         k2q2 = k2q2_e + k2q2_c
 
     # Position vectors magnitude
-    r1 = mag_vec_soft(q1_x, q1_y, q1_z, R1 + Rs)
+    r1 = mag_vec(q1_x, q1_y, q1_z)
     v1 = mag_vec(q1_vx, q1_vy, q1_vz)
-    r2 = mag_vec_soft(y[0], y[1], y[2], R2 + Rs)
+    r2 = mag_vec(y[0], y[1], y[2])
     v2 = mag_vec(y[3], y[4], y[5])
 
     a1 = state_vector_to_semimajor(Ms, M1, r1, v1)
@@ -479,29 +475,25 @@ def dr2_dt(y, t, parameters):
     f_02_z = -(mu2 / r2**3) * y[2]
 
     # Force of body 1 on body 2
-    f_12_x = GCONST * M1 * ((q1_x - y[0]) / mag_vec_soft((q1_x - y[0]), (q1_y - y[1]), (q1_z - y[2]), (R1 + R2))**3. - q1_x / r1**3.)
-    f_12_y = GCONST * M1 * ((q1_y - y[1]) / mag_vec_soft((q1_x - y[0]), (q1_y - y[1]), (q1_z - y[2]), (R1 + R2))**3. - q1_y / r1**3.)
-    f_12_z = GCONST * M1 * ((q1_z - y[2]) / mag_vec_soft((q1_x - y[0]), (q1_y - y[1]), (q1_z - y[2]), (R1 + R2))**3. - q1_z / r1**3.)
+    f_12_x = GCONST * M1 * ((q1_x - y[0]) / mag_vec((q1_x - y[0]), (q1_y - y[1]), (q1_z - y[2]))**3. - q1_x / r1**3.)
+    f_12_y = GCONST * M1 * ((q1_y - y[1]) / mag_vec((q1_x - y[0]), (q1_y - y[1]), (q1_z - y[2]))**3. - q1_y / r1**3.)
+    f_12_z = GCONST * M1 * ((q1_z - y[2]) / mag_vec((q1_x - y[0]), (q1_y - y[1]), (q1_z - y[2]))**3. - q1_z / r1**3.)
 
     # Relativity correction
-    dot_product = q1_x * q1_vx + q1_y * q1_vy + q1_z * q1_vz
+    dot_product = np.dot([q1_x, q1_y, q1_z], [q1_vx, q1_vy, q1_vz])
     f_rel_x = GCONST * M1 * Ms / (c_light**2 * r1**3.) * ((4 * GCONST * Ms / r1 - v1**2.) * q1_x + 4 * dot_product * q1_vx)
     f_rel_y = GCONST * M1 * Ms / (c_light**2 * r1**3.) * ((4 * GCONST * Ms / r1 - v1**2.) * q1_y + 4 * dot_product * q1_vy)
     f_rel_z = GCONST * M1 * Ms / (c_light**2 * r1**3.) * ((4 * GCONST * Ms / r1 - v1**2.) * q1_z + 4 * dot_product * q1_vz)
 
     # Tidal force on body 1
-    cross_pr_r_om1 = [q1_y * om1_z - q1_z * om1_y,
-                      q1_z * om1_x - q1_x * om1_z,
-                      q1_x * om1_y - q1_y * om1_x]
+    cross_pr_r_om1 = np.cross([q1_x, q1_y, q1_z], [om1_x, om1_y, om1_z])
 
     f_tidal_x = -3 * k2q1 * GCONST * Ms**.2 * R1**5. / (n1 * r1**10.) * (2 * q1_x * dot_product + r1**2. * (cross_pr_r_om1[0] + q1_vx))
     f_tidal_y = -3 * k2q1 * GCONST * Ms**.2 * R1**5. / (n1 * r1**10.) * (2 * q1_y * dot_product + r1**2. * (cross_pr_r_om1[1] + q1_vy))
     f_tidal_z = -3 * k2q1 * GCONST * Ms**.2 * R1**5. / (n1 * r1**10.) * (2 * q1_z * dot_product + r1**2. * (cross_pr_r_om1[2] + q1_vz))
 
     # Tidal force on body 2
-    cross_pr_r_om2 = [y[1] * om2_z - y[2] * om2_y,
-                      y[2] * om2_x - y[0] * om2_z,
-                      y[0] * om2_y - y[1] * om2_x]
+    cross_pr_r_om2 = np.cross([y[0], y[1], y[2]], [om2_x, om2_y, om2_z])
 
     g_tidal_x = -3 * k2q2 * GCONST * Ms**.2 * R2**5. / (n2 * r2**10.) * (2 * y[0] * dot_product + r2**2. * (cross_pr_r_om2[0] + y[3]))
     g_tidal_y = -3 * k2q2 * GCONST * Ms**.2 * R2**5. / (n2 * r2**10.) * (2 * y[1] * dot_product + r2**2. * (cross_pr_r_om2[1] + y[4]))
@@ -541,7 +533,7 @@ def dom1_dt(y, t, parameters):
     q1_vx = parameters["q1_vx"]
     q1_vy = parameters["q1_vy"]
     q1_vz = parameters["q1_vz"]
-    r1 = mag_vec_soft(q1_x, q1_y, q1_z, R1 + Rs)
+    r1 = mag_vec(q1_x, q1_y, q1_z)
     v1 = mag_vec(q1_vx, q1_vy, q1_vz)
 
     a1 = state_vector_to_semimajor(Ms, M1, r1, v1)
@@ -561,10 +553,8 @@ def dom1_dt(y, t, parameters):
                                  beta_1, M1, R1)
         k2q1 = k2q1_e + k2q1_c
 
-    dot_pr_r_om = q1_x * om1_x + q1_y * om1_y + q1_z * om1_z
-    cross_pr_r_v = [q1_y * q1_vz - q1_z * q1_vy,
-                    q1_z * q1_vx - q1_x * q1_vz,
-                    q1_x * q1_vy - q1_y * q1_vx]
+    dot_pr_r_om = np.dot([q1_x, q1_y, q1_z], [om1_x, om1_y, om1_z])
+    cross_pr_r_v = np.cross([q1_x, q1_y, q1_z], [q1_vx, q1_vy, q1_vz])
 
     dom1dt0 = -3 * k2q1 * GCONST * Ms**.2 * R1**5. / (mom1 * n1 * r1**8.) * (dot_pr_r_om * q1_x - r1**2. * om1_x + cross_pr_r_v[0])
     dom1dt1 = -3 * k2q1 * GCONST * Ms**.2 * R1**5. / (mom1 * n1 * r1**8.) * (dot_pr_r_om * q1_y - r1**2. * om1_y + cross_pr_r_v[1])
@@ -597,7 +587,7 @@ def dom2_dt(y, t, parameters):
     q2_vx = parameters["q2_vx"]
     q2_vy = parameters["q2_vy"]
     q2_vz = parameters["q2_vz"]
-    r2 = mag_vec_soft(q2_x, q2_y, q2_z, R2 + Rs)
+    r2 = mag_vec(q2_x, q2_y, q2_z)
     v2 = mag_vec(q2_vx, q2_vy, q2_vz)
 
     a2 = state_vector_to_semimajor(Ms, M2, r2, v2)
@@ -618,10 +608,8 @@ def dom2_dt(y, t, parameters):
                                  beta_2, M2, R2)
         k2q2 = k2q2_e + k2q2_c
 
-    dot_pr_r_om = q2_x * om2_x + q2_y * om2_y + q2_z * om2_z
-    cross_pr_r_v = [q2_y * q2_vz - q2_z * q2_vy,
-                    q2_z * q2_vx - q2_x * q2_vz,
-                    q2_x * q2_vy - q2_y * q2_vx]
+    dot_pr_r_om = np.dot([q2_x, q2_y, q2_z], [om2_x, om2_y, om2_z])
+    cross_pr_r_v = np.cross([q2_x, q2_y, q2_z], [q2_vx, q2_vy, q2_vz])
 
     dom2dt0 = -3 * k2q2 * GCONST * Ms**.2 * R2**5. / (mom2 * n2 * r2**8.) * (dot_pr_r_om * q2_x - r2**2. * om2_x + cross_pr_r_v[0])
     dom2dt1 = -3 * k2q2 * GCONST * Ms**.2 * R2**5. / (mom2 * n2 * r2**8.) * (dot_pr_r_om * q2_y - r2**2. * om2_y + cross_pr_r_v[1])
