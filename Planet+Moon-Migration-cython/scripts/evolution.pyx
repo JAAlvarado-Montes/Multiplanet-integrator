@@ -151,10 +151,10 @@ print("{}\n mass={}kg, a_ini={}au\n".format(bodies[1].name,
 # ************************************************************
 # INTEGRATION
 # ************************************************************
-t_scale = YEAR / uT * u.s
+t_scale = KYEAR / uT * u.s
 t = 10. * t_scale
 
-dt_scale = HOUR / uT * u.s
+dt_scale = DAY / uT * u.s
 dt = 1. * dt_scale
 
 N_steps = t.value / dt.value
