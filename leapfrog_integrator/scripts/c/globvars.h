@@ -15,7 +15,7 @@
 #define MIN     60.0
 #define HOUR    60.0 * MIN
 #define DAY     24.0 * HOUR
-#define MONTH	  30.0 * DAY
+#define MONTH   30.0 * DAY
 #define YEAR    365.25 * DAY
 #define KYEAR   1e3 * YEAR
 #define MYEAR   1e6 * YEAR
