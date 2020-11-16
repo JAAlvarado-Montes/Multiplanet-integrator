@@ -12,7 +12,7 @@ import os
 
 uM, uL, uT = units(uL=RSUN, uM=MSUN)
 
-time_values = np.loadtxt("./../code_in_c/times.csv",
+time_values = np.loadtxt("./../c/times.csv",
                          delimiter=";", dtype=float, usecols=(0),
                          unpack=True)
 
@@ -21,7 +21,7 @@ time_values = np.loadtxt("./../code_in_c/times.csv",
  x_vals_inner,
  y_vals_inner,
  x_vals_outer,
- y_vals_outer) = np.loadtxt("./../code_in_c/positions.csv",
+ y_vals_outer) = np.loadtxt("./../c/positions.csv",
                             delimiter=";", dtype=float, usecols=(0, 1, 2, 3, 4, 5),
                             unpack=True)
 
@@ -30,7 +30,7 @@ time_values = np.loadtxt("./../code_in_c/times.csv",
  vx_vals_inner,
  vy_vals_inner,
  vx_vals_outer,
- vy_vals_outer) = np.loadtxt("./../code_in_c/velocities.csv",
+ vy_vals_outer) = np.loadtxt("./../c/velocities.csv",
                              delimiter=";", dtype=float, usecols=(0, 1, 2, 3, 4, 5),
                              unpack=True)
 
@@ -76,7 +76,7 @@ rel_error = np.abs((total_energy - total_energy[0]) / total_energy[0])
 # #### PLOTTING ####
 ####################
 # DIRECTORY FOR SAVING IMAGES
-images_dir = f"../../figures/from_c/"
+images_dir = f"../../figures/"
 os.makedirs(images_dir, exist_ok=True)
 
 index = 1
