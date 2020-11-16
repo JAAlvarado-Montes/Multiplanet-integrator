@@ -41,7 +41,7 @@ KYEAR = 1e3 * YEAR
 MYEAR = 1e6 * YEAR  # s
 GYEAR = 1e9 * YEAR  # s
 
-G = 1.  # 6.6740831e-11  # m^3 / kg s^2
+G = 1.0  # 6.6740831e-11  # m^3 / kg s^2
 sigmasb = const.Stefan_Boltzmann
 c_light = const.c  # m / s
 

@@ -5,20 +5,17 @@ from functions import (mag_vec, mag_vec_soft,
                        grav_force, initial_velocity,
                        state_vector_to_semimajor, grav_relat_force)
 
-from tqdm import tqdm, trange
+from tqdm import trange
 
 import numpy as np
 import matplotlib.pyplot as plt
 import time
 import os
-import sys
-
-method_flag = sys.argv[1]
 
 ###################################################
 # #### COMPUTE CANONICAL UNITS FOR SIMULATION #####
 ###################################################
-uM, uL, uT = units(uL=RSUN, uM=MSUN)
+uM, uL, uT = units(uL=2 * RSUN, uM=MSUN)
 
 #################################################
 # #### SET INITIAL CONDITIONS OF THE SYSTEM #####
@@ -63,21 +60,14 @@ initial_position_star = initial_position_star - COM_initial   # Moving to COM fr
 ######################################
 # #### INTEGRATION TIME AND STEP #####
 ######################################
-total_t = 10 * DAY / uT
+total_t = 1. * KYEAR / uT
 dt = 0.1 * HOUR / uT
-dt_store = 10 * HOUR / uT
+dt_store = 1 * YEAR / uT
 
 time_vector = np.arange(0, total_t, dt)
+num_steps = len(time_vector)
 
-if method_flag == "while":
-    num_steps = 2
-
-if method_flag == "for":
-    num_steps = len(time_vector)
-    time_values = time_vector
-
-print("Integration time =", total_t * uT / YEAR, "y", end=" ")
-print("timestep =", dt * uT / DAY, "d")
+print("Integration time =", total_t * uT / YEAR, "y", "timestep =", dt * uT / DAY, "d")
 
 start_time = time.time()
 print("Running n-body simulation...\n")
@@ -164,183 +154,154 @@ star_forces[0] = initial_force_star
 COM = np.zeros((num_steps, 2))
 COM[0] = COM_initial
 
-if method_flag == "while":
+t = 0.0
+t_save = 0.0
 
-    t = np.float(0.0)
-    t_save = np.float(0.0)
+SI_sep = []
+SO_sep = []
+IO_sep = []
 
-    SI_sep = []
-    SO_sep = []
-    IO_sep = []
+s_positions = [[], []]
+i_positions = [[], []]
+o_positions = [[], []]
 
-    s_positions = [[], []]
-    i_positions = [[], []]
-    o_positions = [[], []]
+s_velocities = [[], []]
+i_velocities = [[], []]
+o_velocities = [[], []]
 
-    s_velocities = [[], []]
-    i_velocities = [[], []]
-    o_velocities = [[], []]
+time_values = []
+for i in trange(num_steps - 1):
+    if t >= t_save and i != 0:
+        time_values.append(t_save)
 
-    time_values = []
+        # Positions of the star
+        s_positions[0].append(star_positions[i][0])
+        s_positions[1].append(star_positions[i][1])
 
-    runs = int(total_t / dt)
-    # pbar = tqdm(total=runs)
+        # Positions of the inner planet to store
+        i_positions[0].append(inner_positions[i][0])
+        i_positions[1].append(inner_positions[i][1])
 
-    for i in trange(len(time_vector) - 1):
-    # while t <= total_t:
-        # pbar.update(1)
-        t = i * dt
-        if t >= t_save:
-            time_values.append(t_save)
+        # Positions of the outer planet to store
+        o_positions[0].append(outer_positions[i][0])
+        o_positions[1].append(outer_positions[i][1])
 
-            # Positions of the star
-            s_positions[0].append(star_positions[0][0])
-            s_positions[1].append(star_positions[0][1])
+        # Velocities of the star to store
+        s_velocities[0].append(star_velocities[i][0])
+        s_velocities[1].append(star_velocities[i][1])
 
-            # Positions of the inner planet to store
-            i_positions[0].append(inner_positions[0][0])
-            i_positions[1].append(inner_positions[0][1])
+        # Velocities of the inner planet
+        i_velocities[0].append(inner_velocities[i][0])
+        i_velocities[1].append(inner_velocities[i][1])
 
-            # Positions of the outer planet to store
-            o_positions[0].append(outer_positions[0][0])
-            o_positions[1].append(outer_positions[0][1])
+        # Velocities of the outer planet to store
+        o_velocities[0].append(outer_velocities[i][0])
+        o_velocities[1].append(outer_velocities[i][1])
 
-            # Velocities of the star to store
-            s_velocities[0].append(star_velocities[0][0])
-            s_velocities[1].append(star_velocities[0][1])
-
-            # Velocities of the inner planet
-            i_velocities[0].append(inner_velocities[0][0])
-            i_velocities[1].append(inner_velocities[0][1])
-
-            # Velocities of the outer planet to store
-            o_velocities[0].append(outer_velocities[0][0])
-            o_velocities[1].append(outer_velocities[0][1])
-
-            # Separation vectores to store
-            SI_sep.append(SI_separations[0])
-            SO_sep.append(SO_separations[0])
-            IO_sep.append(IO_separations[0])
-
-            t_save = t_save + dt_store
+        # Separation vectores to store
+        SI_sep.append(SI_separations[i])
+        SO_sep.append(SO_separations[i])
+        IO_sep.append(IO_separations[i])
 
         # Update positions
-        star_positions[0] = star_positions[0] + star_velocities[0] * dt + 0.5 * star_forces[0] / m0 * dt**2
-        inner_positions[0] = inner_positions[0] + inner_velocities[0] * dt + 0.5 * inner_forces[0] / m1 * dt**2
-        outer_positions[0] = outer_positions[0] + outer_velocities[0] * dt + 0.5 * outer_forces[0] / m2 * dt**2
-
-        COM[0] = (m0 * star_positions[0] + m1 * inner_positions[0] + m2 * outer_positions[0]) / (m0 + m1 + m2)
+        star_positions[0:i - 1] = 0.0
+        inner_positions[0:i - 1] = 0.0
+        outer_positions[0:i - 1] = 0.0
 
         # Reset positions to common frame of reference
-        star_positions[0] = star_positions[0] - COM[0]
-        inner_positions[0] = inner_positions[0] - COM[0]
-        outer_positions[0] = outer_positions[0] - COM[0]
+        star_positions[0:i - 1] = 0.0
+        inner_positions[0:i - 1] = 0.0
+        outer_positions[0:i - 1] = 0.0
 
         # Calculate separation vectors
-        SI_separation_vectors[0] = inner_positions[0] - star_positions[0]     # FROM star TO inner
-        IS_separation_vectors[0] = - SI_separation_vectors[0]
+        SI_separation_vectors[0:i - 1] = 0.0
+        IS_separation_vectors[0:i - 1] = 0.0
 
-        SO_separation_vectors[0] = outer_positions[0] - star_positions[0]     # FROM star TO outer
-        OS_separation_vectors[0] = - SO_separation_vectors[0]
+        SO_separation_vectors[0:i - 1] = 0.0
+        OS_separation_vectors[0:i - 1] = 0.0
 
-        IO_separation_vectors[0] = outer_positions[0] - inner_positions[0]    # FROM inner TO outer
-        OI_separation_vectors[0] = - IO_separation_vectors[0]
+        IO_separation_vectors[0:i - 1] = 0.0
+        OI_separation_vectors[0:i - 1] = 0.0
 
         # Compute magnitude of the separation vectors
-        SI_separations[0] = mag_vec_soft(SI_separation_vectors[0][0], SI_separation_vectors[0][1])
-        SO_separations[0] = mag_vec_soft(SO_separation_vectors[0][0], SO_separation_vectors[0][1])
-        IO_separations[0] = mag_vec_soft(IO_separation_vectors[0][0], IO_separation_vectors[0][1])
+        SI_separations[0:i - 1] = 0.0
+        SO_separations[0:i - 1] = 0.0
+        IO_separations[0:i - 1] = 0.0
 
         # Compute new forces
-        star_forces[1] = grav_force(m0, m1, IS_separation_vectors[0], SI_separations[0]) + grav_force(m0, m2, OS_separation_vectors[0], SO_separations[0])
-        inner_forces[1] = grav_force(m1, m0, SI_separation_vectors[0], SI_separations[0]) + grav_force(m1, m2, OI_separation_vectors[0], IO_separations[0]) + grav_relat_force(m1, m0, c_light, SI_separation_vectors[0], SI_separations[0], inner_velocities[0]) * (m0 + m1) / m0
-        outer_forces[1] = grav_force(m2, m0, SO_separation_vectors[0], SO_separations[0]) + grav_force(m2, m1, IO_separation_vectors[0], IO_separations[0]) + grav_relat_force(m1, m0, c_light, SI_separation_vectors[0], SI_separations[0], inner_velocities[0]) / m0
+        star_forces[0:i - 1] = 0.0
+        inner_forces[0:i - 1] = 0.0
+        outer_forces[0:i - 1] = 0.0
 
         # Update velocities
-        star_velocities[0] = star_velocities[0] + 0.5 * (star_forces[0] + star_forces[1]) / m0 * dt
-        inner_velocities[0] = inner_velocities[0] + 0.5 * (inner_forces[0] + inner_forces[1]) / m1 * dt
-        outer_velocities[0] = outer_velocities[0] + 0.5 * (outer_forces[0] + outer_forces[1]) / m2 * dt
+        star_velocities[0:i - 1] = 0.0
+        inner_velocities[0:i - 1] = 0.0
+        outer_velocities[0:i - 1] = 0.0
 
-        star_forces[0] = star_forces[1]
-        inner_forces[0] = inner_forces[1]
-        outer_forces[0] = outer_forces[1]
+        star_forces[0:i - 1] = 0.0
+        inner_forces[0:i - 1] = 0.0
+        outer_forces[0:i - 1] = 0.0
 
-        # t += dt
+        t_save += dt_store
 
-    ##########################################################
-    # ### GET POSITIONS AND VELOCITIES FOR ALL THE BODIES ####
-    ##########################################################
-    x_vals_star = np.array(s_positions[0])
-    y_vals_star = np.array(s_positions[1])
-    x_vals_inner = np.array(i_positions[0])
-    y_vals_inner = np.array(i_positions[1])
-    x_vals_outer = np.array(o_positions[0])
-    y_vals_outer = np.array(o_positions[1])
+    # Calculate positional change
+    star_positions[i + 1] = star_positions[i] + star_velocities[i] * dt + 0.5 * star_forces[i] / m0 * dt**2
+    inner_positions[i + 1] = inner_positions[i] + inner_velocities[i] * dt + 0.5 * inner_forces[i] / m1 * dt**2
+    outer_positions[i + 1] = outer_positions[i] + outer_velocities[i] * dt + 0.5 * outer_forces[i] / m2 * dt**2
 
-    vx_vals_star = np.array(s_velocities[0])
-    vy_vals_star = np.array(s_velocities[1])
-    vx_vals_inner = np.array(i_velocities[0])
-    vy_vals_inner = np.array(i_velocities[1])
-    vx_vals_outer = np.array(o_velocities[0])
-    vy_vals_outer = np.array(o_velocities[1])
+    COM[i + 1] = (m0 * star_positions[i + 1] + m1 * inner_positions[i + 1] + m2 * outer_positions[i + 1]) / (m0 + m1 + m2)
 
-    time_values = np.array(time_values)
+    # Reset positions to common frame of reference
+    star_positions[i + 1] = star_positions[i + 1] - COM[i + 1]
+    inner_positions[i + 1] = inner_positions[i + 1] - COM[i + 1]
+    outer_positions[i + 1] = outer_positions[i + 1] - COM[i + 1]
 
-elif method_flag == "for":
-    for i in trange(num_steps - 1):
+    # Calculate separation vectors
+    SI_separation_vectors[i + 1] = inner_positions[i + 1] - star_positions[i + 1]     # FROM star TO inner
+    IS_separation_vectors[i + 1] = - SI_separation_vectors[i + 1]
 
-        # Calculate positional change
-        star_positions[i + 1] = star_positions[i] + star_velocities[i] * dt + 0.5 * star_forces[i] / m0 * dt**2
-        inner_positions[i + 1] = inner_positions[i] + inner_velocities[i] * dt + 0.5 * inner_forces[i] / m1 * dt**2
-        outer_positions[i + 1] = outer_positions[i] + outer_velocities[i] * dt + 0.5 * outer_forces[i] / m2 * dt**2
+    SO_separation_vectors[i + 1] = outer_positions[i + 1] - star_positions[i + 1]     # FROM star TO outer
+    OS_separation_vectors[i + 1] = - SO_separation_vectors[i + 1]
 
-        COM[i + 1] = (m0 * star_positions[i + 1] + m1 * inner_positions[i + 1] + m2 * outer_positions[i + 1]) / (m0 + m1 + m2)
+    IO_separation_vectors[i + 1] = outer_positions[i + 1] - inner_positions[i + 1]
+    OI_separation_vectors[i + 1] = - IO_separation_vectors[i + 1]
 
-        # Reset positions to common frame of reference
-        star_positions[i + 1] = star_positions[i + 1] - COM[i + 1]
-        inner_positions[i + 1] = inner_positions[i + 1] - COM[i + 1]
-        outer_positions[i + 1] = outer_positions[i + 1] - COM[i + 1]
+    SI_separations[i + 1] = mag_vec_soft(SI_separation_vectors[i + 1][0], SI_separation_vectors[i + 1][1])
+    SO_separations[i + 1] = mag_vec_soft(SO_separation_vectors[i + 1][0], SO_separation_vectors[i + 1][1])
+    IO_separations[i + 1] = mag_vec_soft(IO_separation_vectors[i + 1][0], IO_separation_vectors[i + 1][1])
 
-        # Calculate separation vectors
-        SI_separation_vectors[i + 1] = inner_positions[i + 1] - star_positions[i + 1]     # FROM star TO inner
-        IS_separation_vectors[i + 1] = - SI_separation_vectors[i + 1]
+    # Calculate forces
+    inner_forces[i + 1] = grav_force(m1, m0, SI_separation_vectors[i + 1], SI_separations[i + 1]) + grav_force(m1, m2, OI_separation_vectors[i + 1], IO_separations[i + 1]) + (m0 + m1) / m0 * (grav_relat_force(m1, m0, c_light, SI_separation_vectors[i + 1], SI_separations[i + 1], inner_velocities[i + 1]))
+    outer_forces[i + 1] = grav_force(m2, m0, SO_separation_vectors[i + 1], SO_separations[i + 1]) + grav_force(m2, m1, IO_separation_vectors[i + 1], IO_separations[i + 1]) + grav_relat_force(m1, m0, c_light, SI_separation_vectors[i + 1], SI_separations[i + 1], inner_velocities[i + 1]) / m0
+    star_forces[i + 1] = grav_force(m0, m1, IS_separation_vectors[i + 1], SI_separations[i + 1]) + grav_force(m0, m2, OS_separation_vectors[i + 1], SO_separations[i + 1])
 
-        SO_separation_vectors[i + 1] = outer_positions[i + 1] - star_positions[i + 1]     # FROM star TO outer
-        OS_separation_vectors[i + 1] = - SO_separation_vectors[i + 1]
+    # Calculate velocity
+    star_velocities[i + 1] = star_velocities[i] + 0.5 * (star_forces[i] + star_forces[i + 1]) * dt / m0
+    inner_velocities[i + 1] = inner_velocities[i] + 0.5 * (inner_forces[i] + inner_forces[i + 1]) * dt / m1
+    outer_velocities[i + 1] = outer_velocities[i] + 0.5 * (outer_forces[i] + outer_forces[i + 1]) * dt / m2
 
-        IO_separation_vectors[i + 1] = outer_positions[i + 1] - inner_positions[i + 1]
-        OI_separation_vectors[i + 1] = - IO_separation_vectors[i + 1]
+    t += dt
 
-        SI_separations[i + 1] = mag_vec_soft(SI_separation_vectors[i + 1][0], SI_separation_vectors[i + 1][1])
-        SO_separations[i + 1] = mag_vec_soft(SO_separation_vectors[i + 1][0], SO_separation_vectors[i + 1][1])
-        IO_separations[i + 1] = mag_vec_soft(IO_separation_vectors[i + 1][0], IO_separation_vectors[i + 1][1])
 
-        # Calculate forces
-        inner_forces[i + 1] = grav_force(m1, m0, SI_separation_vectors[i + 1], SI_separations[i + 1]) + grav_force(m1, m2, OI_separation_vectors[i + 1], IO_separations[i + 1]) + (m0 + m1) / m0 * (grav_relat_force(m1, m0, c_light, SI_separation_vectors[i + 1], SI_separations[i + 1], inner_velocities[i + 1]))
-        outer_forces[i + 1] = grav_force(m2, m0, SO_separation_vectors[i + 1], SO_separations[i + 1]) + grav_force(m2, m1, IO_separation_vectors[i + 1], IO_separations[i + 1]) + grav_relat_force(m1, m0, c_light, SI_separation_vectors[i + 1], SI_separations[i + 1], inner_velocities[i + 1]) / m0
-        star_forces[i + 1] = grav_force(m0, m1, IS_separation_vectors[i + 1], SI_separations[i + 1]) + grav_force(m0, m2, OS_separation_vectors[i + 1], SO_separations[i + 1])
+x_vals_star = np.array(s_positions[0])
+y_vals_star = np.array(s_positions[1])
+x_vals_inner = np.array(i_positions[0])
+y_vals_inner = np.array(i_positions[1])
+x_vals_outer = np.array(o_positions[0])
+y_vals_outer = np.array(o_positions[1])
 
-        # Calculate velocity
-        star_velocities[i + 1] = star_velocities[i] + 0.5 * (star_forces[i] + star_forces[i + 1]) * dt / m0
-        inner_velocities[i + 1] = inner_velocities[i] + 0.5 * (inner_forces[i] + inner_forces[i + 1]) * dt / m1
-        outer_velocities[i + 1] = outer_velocities[i] + 0.5 * (outer_forces[i] + outer_forces[i + 1]) * dt / m2
+vx_vals_star = np.array(s_velocities[0])
+vy_vals_star = np.array(s_velocities[1])
+vx_vals_inner = np.array(i_velocities[0])
+vy_vals_inner = np.array(i_velocities[1])
+vx_vals_outer = np.array(o_velocities[0])
+vy_vals_outer = np.array(o_velocities[1])
 
-    x_vals_star = star_positions[:, 0]
-    y_vals_star = star_positions[:, 1]
-    x_vals_inner = inner_positions[:, 0]
-    y_vals_inner = inner_positions[:, 1]
-    x_vals_outer = outer_positions[:, 0]
-    y_vals_outer = outer_positions[:, 1]
+SI_sep = np.array(SI_sep)
+SO_sep = np.array(SO_sep)
+IO_sep = np.array(IO_sep)
 
-    vx_vals_star = star_velocities[:, 0]
-    vy_vals_star = star_velocities[:, 1]
-    vx_vals_inner = inner_velocities[:, 0]
-    vy_vals_inner = inner_velocities[:, 1]
-    vx_vals_outer = outer_velocities[:, 0]
-    vy_vals_outer = outer_velocities[:, 1]
-
-else:
-    exit(0)
+time_values = np.array(time_values)
 
 end_time = time.time()
 exec_time = (end_time - start_time) / MIN
@@ -361,24 +322,22 @@ v2 = mag_vec(vx_vals_outer, vy_vals_outer)
 a1 = state_vector_to_semimajor(m0, m1, r1, v1)
 a2 = state_vector_to_semimajor(m0, m2, r2, v2)
 
+print(star_positions)
+
 ##################################################
 # #### COMPUTE THE TOTAL ENERGY OF THE SYSTEM ####
 ##################################################
 kinetic_energy = 0.5 * (m0 * v0**2. + m1 * v1**2. + m2 * v2**2.)
 
 # potential_energy = - G * m1 * m0 / mag_vec(x_vals_star - x_vals_inner, y_vals_star - y_vals_inner) - G * m2 * m0 / mag_vec(x_vals_star - x_vals_outer, y_vals_star - y_vals_outer) - G * m1 * m2 / mag_vec(x_vals_outer - x_vals_inner, y_vals_outer - y_vals_inner)
-if method_flag == "while":
-    potential_energy = - G * m1 * m0 / SI_sep - G * m2 * m0 / SO_sep - G * m1 * m2 / IO_sep
+potential_energy = - G * m1 * m0 / SI_sep - G * m2 * m0 / SO_sep - G * m1 * m2 / IO_sep
 
-if method_flag == "for":
-    potential_energy = - G * m1 * m0 / SI_separations - G * m2 * m0 / SO_separations - G * m1 * m2 / IO_separations
-
-total_energy = potential_energy  # kinetic_energy #+ potential_energy
+total_energy = kinetic_energy + potential_energy
 print(kinetic_energy[0], potential_energy[0])
 ########################################################
 # #### COMPUTE THE RELATIVE ERROR OF THE SIMULATION ####
 ########################################################
-rel_error = total_energy  # np.abs((total_energy - total_energy[0]) / total_energy[0])
+rel_error = np.abs((total_energy - total_energy[0]) / total_energy[0])
 
 # tables_dir = f"../tables/{total_t * uT / YEAR}yr_dt{dt * uT / HOUR}h/{method_flag}"
 # os.makedirs(tables_dir, exist_ok=True)
@@ -405,14 +364,10 @@ rel_error = total_energy  # np.abs((total_energy - total_energy[0]) / total_ener
 # #### PLOTTING ####
 ####################
 # DIRECTORY FOR SAVING IMAGES
-images_dir = f"../figures/{total_t * uT / YEAR}yr_dt{dt * uT / HOUR}h/{method_flag}"
+images_dir = f"../figures/{total_t * uT / YEAR}yr_dt{dt * uT / HOUR}h"
 os.makedirs(images_dir, exist_ok=True)
 
-if method_flag == "while":
-    index = 1
-
-if method_flag == "for":
-    index = int(dt_store / dt)
+index = 1
 
 plt.figure()
 plt.plot(x_vals_star[::index] * uL / AU, y_vals_star[::index] * uL / AU, "y.", ms=0.4, label="Star")
@@ -429,7 +384,7 @@ plt.savefig(fig_name, dpi=300)
 plt.show()
 
 plt.figure()
-plt.plot(time_values[::index] * uT / YEAR, a1[::index] * uL / AU, "b-", ms=0.4, label="Inner planet")
+plt.plot(time_values[::index] * uT / YEAR, a1[::index] * uL / AU, "b.", ms=0.5, label="Inner planet")
 plt.ylabel("Semi-major axis [au]", fontsize=11)
 plt.xlabel("time [yr]", fontsize=11)
 plt.ylim((0.00975, 0.01175))
@@ -439,7 +394,7 @@ plt.savefig(fig_name, dpi=300)
 plt.show()
 
 plt.figure()
-plt.plot(time_values[::index] * uT / YEAR, a2[::index] * uL / AU, "r-", ms=0.4, label="Outer planet")
+plt.plot(time_values[::index] * uT / YEAR, a2[::index] * uL / AU, "r.", ms=0.5, label="Outer planet")
 plt.ylabel("Semi-major axis [au]", fontsize=11)
 plt.xlabel("time [yr]", fontsize=11)
 plt.legend(loc="upper left")
@@ -448,7 +403,7 @@ plt.savefig(fig_name, dpi=300)
 plt.show()
 
 plt.figure()
-plt.plot(time_values[::index] * uT / YEAR, v1[::index], "b-", ms=0.4, label="Inner planet")
+plt.plot(time_values[::index] * uT / YEAR, v1[::index], "b.", ms=0.5, label="Inner planet")
 plt.ylabel("velocity [au]", fontsize=11)
 plt.xlabel("time [yr]", fontsize=11)
 plt.legend(loc="upper left")
@@ -457,7 +412,7 @@ plt.savefig(fig_name, dpi=300)
 plt.show()
 
 plt.figure()
-plt.plot(time_values[::index] * uT / YEAR, r1[::index] * uL / AU, "bo", ms=0.5, label="Inner planet")
+plt.plot(time_values[::index] * uT / YEAR, r1[::index] * uL / AU, "b.", ms=0.5, label="Inner planet")
 plt.ylabel("position vector [au]", fontsize=11)
 plt.xlabel("time [yr]", fontsize=11)
 plt.legend(loc="upper left")
@@ -468,7 +423,7 @@ plt.savefig(fig_name, dpi=300)
 plt.show()
 
 plt.figure()
-plt.plot(time_values[::index] * uT / YEAR, rel_error[::index], "g-", ms=0.4, label="Relative error")
+plt.plot(time_values[::index] * uT / YEAR, rel_error[::index], "g-", ms=0.5, label="Relative error")
 plt.ylabel("Relative error", fontsize=11)
 plt.xlabel("time [yr]", fontsize=11)
 plt.legend(loc="upper left")

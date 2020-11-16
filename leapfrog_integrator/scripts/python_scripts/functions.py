@@ -11,7 +11,7 @@ def mag_vec(a, b):
     return mag
 
 
-def mag_vec_soft(a, b, soft=0.0):
+def mag_vec_soft(a, b, soft=0.5):
     mag = (a**2. + b**2. + soft**2.)**0.5
 
     return mag
