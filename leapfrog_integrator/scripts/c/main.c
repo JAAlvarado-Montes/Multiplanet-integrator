@@ -9,22 +9,24 @@ int main(void)
   printf("uL is: %f m\n", uL);
   printf("uT is: %f s\n", uT);
 
-  FILE *fp, *fv, *ft, *fs;
+FILE *ftxv;
+//  FILE *fp, *fv, *ft, *fs;
   // char src[100];
   // char dest[100];
   // char name_files[100];
   // strcpy(src,st.sim_name);
   // strcpy(dest,".dat");
   // strcpy(name_files, strcat(src,dest));
-  fp = fopen("./positions.csv","w");
-  fv = fopen("./velocities.csv","w");
-  ft = fopen("./times.csv","w");
+  ftxv = fopen("./data.dat","w");
+  // fv = fopen("./velocities.csv","w");
+  // ft = fopen("./times.csv","w");
+
 
   // ######################################################
   // # #### INTEGRATION TIME, TIMESTEP, AND SOFTENING #####
   // ######################################################
   int NBody = 3;
-  double total_t = 50. * YEAR / uT;
+  double total_t = 100 * YEAR / uT;
   double dt_std = 0.5 * MIN / uT;
   double dt_store = 10. * DAY / uT;
   double softening = 0.4;
@@ -169,17 +171,11 @@ int main(void)
 
   t = 0.0;
   t_save = 0.0;
+  fprintf(ftxv, "%10s\t%34s\t%34s\t%34s\t%34s\t%34s\t%34s\t%34s\t%34s\t%34s\t%34s\t%34s\t%34s\t%34s\n", 
+                 "#Time", "dt", "Star_x", " Star_y","Inner_x", " Inner_y", " Outer_x", "Outer_y", "Star_vx", 
+                 "Star_vy", "Inner_vx", "Inner_vy", "Outer_vx", "Outer_vy");
+
   while (t <= total_t){
-    if (t > t_save){
-      fprintf(fp, "%.30f;%.30f;%.30f;%.30f;%.30f;%.30f\n", star_positions[0][0], 
-              star_positions[0][1], inner_positions[0][0],
-              inner_positions[0][1], outer_positions[0][0], outer_positions[0][1]);
-      fprintf(fv, "%.30f;%.30f;%.30f;%.30f;%.30f;%.30f\n", star_velocities[0][0], 
-              star_velocities[0][1], inner_velocities[0][0],
-              inner_velocities[0][1], outer_velocities[0][0], outer_velocities[0][1]);
-      fprintf(ft, "%.30f\n", t_save);
-              t_save += dt_store;
-    }
 
     // Compute timestep for next calculations		
     timestep_array[0] = dt_std;
@@ -188,6 +184,17 @@ int main(void)
     timestep_array[3] = timestep(outer_forces, m2, R2, dt_std);
     // Choose the minimum of the above timesteps
     dt = find_min(timestep_array, NBody + 1);
+
+    if (t > t_save){
+        fprintf(ftxv, "%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\n", 
+                t, dt, star_positions[0][0], star_positions[0][1], inner_positions[0][0], inner_positions[0][1],
+                outer_positions[0][0], outer_positions[0][1], star_velocities[0][0], star_velocities[0][1],
+                inner_velocities[0][0], inner_velocities[0][1], outer_velocities[0][0], outer_velocities[0][1]);
+
+
+              t_save += dt_store;
+    }
+
 
     progress = (t / total_t) * 100.0;
     printf("Progress: %.6f per cent \n", progress);
@@ -242,9 +249,9 @@ int main(void)
 
   printf("prueba %.30f\n", inner_forces[0][0]);
 
-  fclose(fp);
-  fclose(fv);
-  fclose(ft);
-
+//  fclose(fp);
+//  fclose(fv);
+//  fclose(ft);
+  fclose(ftxv);
   return 0;
 }
