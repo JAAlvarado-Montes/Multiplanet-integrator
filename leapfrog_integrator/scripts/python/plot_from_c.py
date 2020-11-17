@@ -12,28 +12,23 @@ import os
 
 uM, uL, uT = units(uL=RSUN, uM=MSUN)
 
-time_values = np.loadtxt("./../c/times.csv",
-                         delimiter=";", dtype=float, usecols=(0),
-                         unpack=True)
-
-(x_vals_star,
+(time_values,
+ timestep,
+ x_vals_star,
  y_vals_star,
  x_vals_inner,
  y_vals_inner,
  x_vals_outer,
- y_vals_outer) = np.loadtxt("./../c/positions.csv",
-                            delimiter=";", dtype=float, usecols=(0, 1, 2, 3, 4, 5),
-                            unpack=True)
-
-(vx_vals_star,
+ y_vals_outer,
+ vx_vals_star,
  vy_vals_star,
  vx_vals_inner,
  vy_vals_inner,
  vx_vals_outer,
- vy_vals_outer) = np.loadtxt("./../c/velocities.csv",
-                             delimiter=";", dtype=float, usecols=(0, 1, 2, 3, 4, 5),
-                             unpack=True)
-
+ vy_vals_outer) = np.loadtxt("./../c/data.dat",
+                             delimiter="\t", dtype=float,
+                             usecols=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13),
+                             unpack=True, skiprows=1)
 
 print(max(time_values) * uT / YEAR)
 #################################################
@@ -132,4 +127,12 @@ plt.xlabel("time [yr]", fontsize=11)
 plt.legend(loc="upper left")
 fig_name = os.path.join(images_dir, "rel_error.png")
 plt.savefig(fig_name, dpi=300)
+plt.show()
+
+
+plt.figure()
+plt.plot(time_values[::index] * uT / YEAR, timestep * uT, "k-", label="time")
+plt.ylabel("dt", fontsize=11)
+plt.xlabel("time [yr]", fontsize=11)
+plt.legend(loc="upper left")
 plt.show()
