@@ -12,6 +12,8 @@ import os
 
 uM, uL, uT = units(uL=RSUN, uM=MSUN)
 
+file = input("Which file to use:", )
+
 (time_values,
  timestep,
  x_vals_star,
@@ -25,12 +27,11 @@ uM, uL, uT = units(uL=RSUN, uM=MSUN)
  vx_vals_inner,
  vy_vals_inner,
  vx_vals_outer,
- vy_vals_outer) = np.loadtxt("./../c/data.dat",
+ vy_vals_outer) = np.loadtxt(f"./../../sims/{file}.dat",
                              delimiter="\t", dtype=float,
                              usecols=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13),
                              unpack=True, skiprows=1)
 
-print(max(time_values) * uT / YEAR)
 #################################################
 # #### SET INITIAL CONDITIONS OF THE SYSTEM #####
 #################################################
@@ -71,7 +72,8 @@ rel_error = np.abs((total_energy - total_energy[0]) / total_energy[0])
 # #### PLOTTING ####
 ####################
 # DIRECTORY FOR SAVING IMAGES
-images_dir = f"../../figures/"
+dire = file.replace(".dat", "")
+images_dir = f"../../figures/{dire}"
 os.makedirs(images_dir, exist_ok=True)
 
 index = 1

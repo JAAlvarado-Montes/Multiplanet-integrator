@@ -26,5 +26,4 @@
 #include <math.h>
 #include <libconfig.h>
 #include "cunits.h"
-// #include "parameters.h"
 #include "functions.h"

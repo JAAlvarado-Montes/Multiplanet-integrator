@@ -5,35 +5,32 @@ int main(void)
   double uM = MSUN;
   double uL = RSUN;
   double uT = get_canon_units(uM, uL, "uT")[2];
+
   printf("uM is: %f kg\n", uM);
   printf("uL is: %f m\n", uL);
   printf("uT is: %f s\n", uT);
 
-FILE *ftxv;
-//  FILE *fp, *fv, *ft, *fs;
-  // char src[100];
-  // char dest[100];
-  // char name_files[100];
-  // strcpy(src,st.sim_name);
-  // strcpy(dest,".dat");
-  // strcpy(name_files, strcat(src,dest));
-  ftxv = fopen("./data.dat","w");
-  // fv = fopen("./velocities.csv","w");
-  // ft = fopen("./times.csv","w");
+  FILE *ftxv;
 
+  char src[100];
+  char dest[100];
+  char file_name[100];
+  strcpy(src, "../../sims/");
+  strcpy(dest,"0.1y.dat");
+  strcpy(file_name, strcat(src,dest));
+  ftxv = fopen(file_name, "w");
 
   // ######################################################
   // # #### INTEGRATION TIME, TIMESTEP, AND SOFTENING #####
   // ######################################################
   int NBody = 3;
-  double total_t = 100 * YEAR / uT;
-  double dt_std = 0.5 * MIN / uT;
-  double dt_store = 10. * DAY / uT;
+  double total_t = 0.1 * YEAR / uT;
+  double dt_std = 0.2 * MIN / uT;
+  double dt_store = 1. * DAY / uT;
   double softening = 0.4;
 
-  printf("%f", total_t);
   printf("Integration time = %f y \n", total_t * uT / YEAR);
-  // printf("timestep = %f d\n", dt * uT / DAY);
+  printf("timestep = %f d\n", dt_std * uT / DAY);
 
   // #################################################
   // # #### SET INITIAL CONDITIONS OF THE SYSTEM #####
@@ -183,7 +180,7 @@ FILE *ftxv;
     timestep_array[2] = timestep(inner_forces, m1, R1, dt_std);
     timestep_array[3] = timestep(outer_forces, m2, R2, dt_std);
     // Choose the minimum of the above timesteps
-    dt = find_min(timestep_array, NBody + 1);
+    dt = dt_std; //find_min(timestep_array, NBody + 1);
 
     if (t > t_save){
         fprintf(ftxv, "%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\n", 
@@ -249,9 +246,6 @@ FILE *ftxv;
 
   printf("prueba %.30f\n", inner_forces[0][0]);
 
-//  fclose(fp);
-//  fclose(fv);
-//  fclose(ft);
   fclose(ftxv);
   return 0;
 }
