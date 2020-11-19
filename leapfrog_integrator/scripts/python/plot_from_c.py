@@ -53,6 +53,17 @@ r2 = mag_vec(x_vals_outer, y_vals_outer)
 v2 = mag_vec(vx_vals_outer, vy_vals_outer)
 a2 = state_vector_to_semimajor(m0, m2, r2, v2)
 
+dot_prod_1 = x_vals_inner * vx_vals_inner + y_vals_inner * vy_vals_inner
+e1_x = (v1**2. / (G * m0) - 1. / r1) * x_vals_inner - dot_prod_1 / (G * m0) * vx_vals_inner
+e1_y = (v1**2. / (G * m0) - 1. / r1) * y_vals_inner - dot_prod_1 / (G * m0) * vy_vals_inner
+
+dot_prod_2 = x_vals_outer * vx_vals_outer + y_vals_outer * vy_vals_outer
+e2_x = (v2**2. / (G * m0) - 1. / r2) * x_vals_outer - dot_prod_2 / (G * m0) * vx_vals_outer
+e2_y = (v2**2. / (G * m0) - 1. / r2) * y_vals_outer - dot_prod_2 / (G * m0) * vy_vals_outer
+
+ecc_1 = mag_vec(e1_x, e1_y)
+ecc_2 = mag_vec(e2_x, e2_y)
+
 ##################################################
 # #### COMPUTE THE TOTAL ENERGY OF THE SYSTEM ####
 ##################################################
@@ -130,6 +141,30 @@ plt.legend(loc="upper left")
 fig_name = os.path.join(images_dir, "rel_error.png")
 plt.savefig(fig_name, dpi=300)
 plt.show()
+
+fig = plt.figure(figsize=(7.5, 5.0))
+ax = fig.add_subplot(1, 1, 1)
+plt.plot(time_values[::index] * uT / YEAR, ecc_1[::index],
+         "b.", ms=0.5, label="Inner planet")
+
+ax.set_ylabel("Eccentricity", fontsize=11)
+ax.set_xlabel("time [yr]", fontsize=11)
+
+ax.legend(loc="upper left")
+fig_name = os.path.join(images_dir, "eccentricity_inner_planet.png")
+fig.savefig(fig_name)
+
+fig = plt.figure(figsize=(7.5, 5.0))
+ax = fig.add_subplot(1, 1, 1)
+plt.plot(time_values[::index] * uT / YEAR, ecc_2[::index],
+         "k.", ms=0.5, label="Outer planet")
+
+ax.set_ylabel("Eccentricity", fontsize=11)
+ax.set_xlabel("time [yr]", fontsize=11)
+
+ax.legend(loc="upper left")
+fig_name = os.path.join(images_dir, "eccentricity_outer_planet.png")
+fig.savefig(fig_name)
 
 
 plt.figure()
