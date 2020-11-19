@@ -16,7 +16,7 @@ int main(void)
   char dest[100];
   char file_name[100];
   strcpy(src, "../../sims/");
-  strcpy(dest,"0.1y.dat");
+  strcpy(dest,"1y.dat");
   strcpy(file_name, strcat(src,dest));
   ftxv = fopen(file_name, "w");
 
@@ -24,7 +24,7 @@ int main(void)
   // # #### INTEGRATION TIME, TIMESTEP, AND SOFTENING #####
   // ######################################################
   int NBody = 3;
-  double total_t = 0.1 * YEAR / uT;
+  double total_t = 1 * YEAR / uT;
   double dt_std = 0.2 * MIN / uT;
   double dt_store = 1. * DAY / uT;
   double softening = 0.4;
@@ -180,22 +180,22 @@ int main(void)
     timestep_array[2] = timestep(inner_forces, m1, R1, dt_std);
     timestep_array[3] = timestep(outer_forces, m2, R2, dt_std);
     // Choose the minimum of the above timesteps
-    dt = dt_std; //find_min(timestep_array, NBody + 1);
+    dt = find_min(timestep_array, NBody + 1);
 
     if (t > t_save){
-        fprintf(ftxv, "%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\n", 
-                t, dt, star_positions[0][0], star_positions[0][1], inner_positions[0][0], inner_positions[0][1],
-                outer_positions[0][0], outer_positions[0][1], star_velocities[0][0], star_velocities[0][1],
-                inner_velocities[0][0], inner_velocities[0][1], outer_velocities[0][0], outer_velocities[0][1]);
+      fprintf(ftxv, "%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\t%.30f\n", 
+              t, dt, star_positions[0][0], star_positions[0][1], inner_positions[0][0], inner_positions[0][1],
+              outer_positions[0][0], outer_positions[0][1], star_velocities[0][0], star_velocities[0][1],
+              inner_velocities[0][0], inner_velocities[0][1], outer_velocities[0][0], outer_velocities[0][1]);
 
 
-              t_save += dt_store;
+      t_save += dt_store;
     }
 
 
     progress = (t / total_t) * 100.0;
     printf("Progress: %.6f per cent \n", progress);
-      // printf("%.5f %.5f\n", dt_std, dt);
+    // printf("%.5f %.5f\n", dt_std, dt);
     for (i=0; i<2; i++){		
       // Update positions
       star_positions[0][i] = star_positions[0][i] + star_velocities[0][i] * dt + 0.5 * star_forces[0][i] / m0 * dt*dt;
